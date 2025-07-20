@@ -8,16 +8,16 @@ I started out from the python script found on https://github.com/Fan4Metal/Sora_
 
 ## Installation
 Important: You need the run the following to allow the script to read the HID information.
-1. sudo mkdir -p /etc/udev/rules.d/
-echo 'KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0666", TAG+="uaccess", TAG+="udev-acl"' | sudo tee /etc/udev/rules.d/92-viia.rules
-2. sudo udevadm control --reload-rules
-3. sudo udevadm trigger
+1. `sudo mkdir -p /etc/udev/rules.d/
+echo 'KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0666", TAG+="uaccess", TAG+="udev-acl"' | sudo tee /etc/udev/rules.d/92-viia.rules`
+2. `sudo udevadm control --reload-rules`
+3. `sudo udevadm trigger`
 
 The executable file can just be added to autostart in your Linux distro.
 
 ## Building
-Make sure to get the "hid" library instead of "hidapi" since only that one could find my mouse. For compiling to an executable file, I used pyinstaller using the following command:
-pyinstaller --onefile --add-data "res/ninjutso_dfdfdf.ico:res" sora_tray.py
+Make sure to get the `hid` library instead of `hidapi` since only that one could find my mouse. For compiling to an executable file, I used pyinstaller using the following command:
+`pyinstaller --onefile --add-data "res/ninjutso_dfdfdf.ico:res" sora_tray.py`
 
 ## Settings
 By default, this tool only polls every 300 seconds, shows the medium battery warning at 30 % and the low battery warning at 20 %. This can be easily customised in the script.
