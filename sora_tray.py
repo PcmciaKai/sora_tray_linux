@@ -13,9 +13,9 @@ PID= 0xAE1C
 USAGE_PAGE = 0xFFA0
 
 # Settings
-POLL_RATE = 300
-BATTERY_MEDIUM = 30
-BATTERY_LOW = 20
+POLL_RATE = 60
+BATTERY_MEDIUM = 25
+BATTERY_LOW = 10
 
 def get_device_path(device_list, usage_page):
     for device in device_list:
@@ -74,10 +74,11 @@ def create_icon(base_icon_path: str, overlay_colour: str) -> QIcon:
     painter.setBrush(QColor(overlay_colour))
     painter.setPen(QColor(overlay_colour))
 
-    # Draw circle in bottom-left corner
-    radius = min(size.width(), size.height()) // 6
-    center = QPoint(radius, size.height() - radius)
-    painter.drawEllipse(center, radius, radius)
+    if overlay_colour:
+        # Draw circle in bottom-left corner
+        radius = min(size.width(), size.height()) // 6
+        center = QPoint(radius, size.height() - radius)
+        painter.drawEllipse(center, radius, radius)
 
     painter.end()
     return QIcon(base_pixmap)
@@ -92,6 +93,7 @@ class BatteryTrayApp:
         self.app = QApplication(sys.argv)
         self.signal = BatterySignal()
         self.signal.updated.connect(self.update_icon)
+        self.battery_notifystate = "charged"
 
         # Initial icon
         self.tray = QSystemTrayIcon()
@@ -113,20 +115,37 @@ class BatteryTrayApp:
 
     def update_icon(self, battery, tooltip):
         if battery > BATTERY_MEDIUM:
-            colour = "#000000"
+            colour = ""
+            if self.battery_notifystate != "charged":
+                self.battery_notifystate = "charged"
         elif battery > BATTERY_LOW:
             colour = "#ffff00"
+            if self.battery_notifystate != "medium":
+                self.battery_notifystate = "medium"
+                self.notify(battery, self.battery_notifystate)
         elif battery == -1:
             colour = "#006eff"
+            if self.battery_notifystate != "charging":
+                self.battery_notifystate = "charging"
         else:
             colour = "#ff0000"
+            if self.battery_notifystate != "low":
+                self.battery_notifystate = "low"
+                self.notify(battery, self.battery_notifystate)
         icon = create_icon(resource_path("res/ninjutso_dfdfdf.ico"), colour)
         self.tray.setIcon(icon)
         self.tray.setToolTip(tooltip)
 
+    def notify(self, battery, state):
+        if state == "medium":
+            os.system('notify-send -a "Ninjutso Sora V2" -i "input-mouse" "" "Ninjutso Sora V2 battery charge is low at ' + str(battery) + ' %, consider charging."')
+        else:
+            os.system('notify-send -a "Ninjutso Sora V2" -i "input-mouse" "" "Ninjutso Sora V2 battery charge is CRITICAL at ' + str(battery) + ' %, consider charging."')
+            
     def poll_loop(self):
         while self.running:
             result = get_battery()
+
             if result is None:
                 self.signal.updated.emit(-404, "Ninjutso Sora V2: No Mouse Detected")
             else:
@@ -135,7 +154,7 @@ class BatteryTrayApp:
                     self.signal.updated.emit(battery, f"Ninjutso Sora V2: {battery} %")
                 else:
                     battery = -1
-                    self.signal.updated.emit(battery, f"Ninjutso Sora V2: Charging")
+                    self.signal.updated.emit(battery, f"Ninjutso Sora V2: Charging/Offline")
                 
             time.sleep(POLL_RATE)
 
