@@ -1,6 +1,6 @@
 # Ninjutso Sora V2 Battery Status Tray Icon
 ## Introduction
-This is a simple tray icon showing the Ninjutso logo which is either clean (working as intended, battery is charged) or it has a coloured circle in the bottom left corner, indicating either medium-low or low battery status by yellow and red. The circle is blue while it is charging. It also shows the battery percentage when hovering over the icon.
+This is a simple tray icon showing the Ninjutso logo which is either clean (working as intended, battery is charged) or it has a coloured circle in the bottom left corner, indicating either medium-low or low battery status by yellow and red. The circle is blue while it is charging (the tooltip shows the charge percentage), green when it is fully charged and grey when the mouse is offline (asleep/switched off) or no receiver is plugged in. It also shows the battery percentage when hovering over the icon.
 
 ![Screenshot](screenshot.png)<br>
 
@@ -19,5 +19,8 @@ The executable file can just be added to autostart in your Linux distro.
 Make sure to get the `hid` library instead of `hidapi` since only that one could find my mouse. For compiling to an executable file, I used pyinstaller using the following command:
 `pyinstaller --onefile --add-data "res/ninjutso_dfdfdf.ico:res" sora_tray.py`
 
+## How it works
+When the cable is connected, the mouse shows up as a separate USB device (`1915:AE11`) next to the receiver (`1915:AE1C`). The tool listens for udev hotplug events, so plugging the cable in or out (or the receiver) updates the icon right away. No extra polling is needed for this, and the process sleeps until the kernel reports a matching device. The battery level itself does not generate events, so it is still queried at a slow interval.
+
 ## Settings
-By default, this tool only polls every 300 seconds, shows the medium battery warning at 30 % and the low battery warning at 20 %. This can be easily customised in the script.
+By default, this tool polls every 60 seconds, shows the medium battery warning at 25 % and the low battery warning at 10 %. This can be easily customised in the script (`POLL_RATE`, `BATTERY_MEDIUM`, `BATTERY_LOW`).
